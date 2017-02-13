@@ -1,0 +1,162 @@
+<!--
+@license
+(C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and contributors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+​
+    http://www.apache.org/licenses/LICENSE-2.0
+​
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<link rel="import" href="nuxeo-select2.html">
+<link rel="import" href="../../iron-form-element-behavior/iron-form-element-behavior.html">
+<link rel="import" href="../../iron-validatable-behavior/iron-validatable-behavior.html">
+
+<!--
+`nuxeo-user-suggestion` allows selecting one or more users.
+
+    <nuxeo-user-suggestion search-type="GROUP_TYPE"
+                           placeholder="Search for Groups"
+                           value="{{groups}}"
+                           multiple></nuxeo-user-suggestion>
+
+@group Nuxeo Widgets
+@element nuxeo-user-suggestion
+@demo demo/widgets/index.html
+@homepage http://www.nuxeo.org
+-->
+<dom-module id="nuxeo-user-suggestion">
+<template>
+
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+
+  <nuxeo-select2 id="s2" operation="UserGroup.Suggestion"
+                 label="[[label]]"
+                 min-chars="[[minChars]]"
+                 multiple="[[multiple]]"
+                 params="[[params]]"
+                 placeholder="[[placeholder]]"
+                 readonly="[[readonly]]"
+                 value="{{value}}"
+                 selected-items="{{selectedItems}}"
+                 required="[[required]]"
+                 invalid="[[invalid]]"
+                 result-formatter="[[resultFormatter]]">
+  </nuxeo-select2>
+
+</template>
+<script>
+Polymer({
+  is: 'nuxeo-user-suggestion',
+  behaviors: [Polymer.IronFormElementBehavior, Polymer.IronValidatableBehavior],
+  properties: {
+
+    // USER_TYPE or GROUP_TYPE or USER_GROUP_TYPE
+    searchType: {
+      type: String,
+      value: 'USER_GROUP_TYPE'
+    },
+
+    /**
+     * Label.
+     */
+    label: String,
+
+    /**
+     * Computed parameters for the `UserGroup.Suggestion` operation.
+     */
+    params: {
+      type: Object,
+      computed: '_computeParams(searchType)'
+    },
+
+    /**
+     * Selected value(s).
+     */
+    value: {
+      type: String,
+      notify: true
+    },
+
+    /**
+     * Set to `true` to allow multiple selection.
+     */
+    multiple: {
+      type: Boolean,
+      value: false
+    },
+
+    /**
+     * Set to `true` for read only mode.
+     */
+    readonly: {
+      type: Boolean,
+      value: false
+    },
+
+    /**
+     * Minimum number of chars to trigger the suggestions.
+     */
+    minChars: {
+      type: Number,
+      value: 3
+    },
+
+    /**
+     * Placeholder.
+     */
+    placeholder: String,
+
+    /**
+     * Selected items.
+     */
+    selectedItems: {
+      type: Object,
+      notify: true
+    },
+
+    /**
+     * Formatter for suggested entries.
+     */
+    resultFormatter: {
+      type: Function,
+      value: function () {
+        return this._resultFormatter.bind(this);
+      }
+    }
+  },
+
+  /* Override method from Polymer.IronValidatableBehavior. */
+  _getValidity: function() {
+    return this.$.s2._getValidity();
+  },
+
+  /* Override method from Polymer.IronValidatableBehavior. */
+  validate: function(value) {
+    this.invalid = !this.$.s2.validate();
+    return !this.invalid;
+  },
+
+  _computeParams: function() {
+    return this.params = {
+      searchType: this.searchType
+    };
+  },
+
+  _resultFormatter: function (item) {
+    return (item.displayLabel || item.title) + ((item.type && item.type === 'USER_TYPE') ? '<br>' + item.email : '');
+  }
+
+});
+</script>
+</dom-module>
